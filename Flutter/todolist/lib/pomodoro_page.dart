@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:vibration/vibration.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 class PomodoroPage extends StatefulWidget {
   const PomodoroPage({super.key});
@@ -29,17 +27,9 @@ class _PomodoroPageState extends State<PomodoroPage> {
           _pomodoroTime--;
         } else if (_isPomodoroRunning && _pomodoroTime == 0) {
           _isPomodoroRunning = false;
-          _playAlarm();
         }
       });
     });
-  }
-
-  void _playAlarm() {
-    FlutterRingtonePlayer.playNotification();
-    if (Vibration.hasVibrator() != null) {
-      Vibration.vibrate(duration: 1000);
-    }
   }
 
   void _startPomodoro() {

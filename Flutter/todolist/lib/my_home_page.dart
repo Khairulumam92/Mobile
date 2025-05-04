@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'todo_list_page.dart';
 import 'notes_page.dart';
 import 'pomodoro_page.dart';
@@ -80,6 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
     {'title': 'Note 3', 'content': 'Content of note 3'},
   ];
 
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
   List<Map<String, String>> get _filteredNotes {
     if (_searchQuery.isEmpty) {
       return notes;
@@ -142,39 +147,78 @@ class _MyHomePageState extends State<MyHomePage> {
           SizedBox(height: 20),
           // Menu buttons
           Expanded(
-            child: ListView(
+            child: Column(
               children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TodoListPage()),
-                    );
+                TableCalendar(
+                  firstDay: DateTime.utc(2000, 1, 1),
+                  lastDay: DateTime.utc(2100, 12, 31),
+                  focusedDay: _focusedDay,
+                  calendarFormat: _calendarFormat,
+                  selectedDayPredicate: (day) {
+                    return isSameDay(_selectedDay, day);
                   },
-                  icon: Icon(Icons.checklist),
-                  label: Text('To-Do List'),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  onFormatChanged: (format) {
+                    setState(() {
+                      if (format == CalendarFormat.month) {
+                        _calendarFormat = CalendarFormat.month;
+                      } else if (format == CalendarFormat.week) {
+                        _calendarFormat = CalendarFormat.week;
+                      } else if (format == CalendarFormat.twoWeeks) {
+                        _calendarFormat = CalendarFormat.twoWeeks;
+                      }
+                    });
+                  },
+                  onPageChanged: (focusedDay) {
+                    _focusedDay = focusedDay;
+                  },
                 ),
                 SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NotesPage()),
-                    );
-                  },
-                  icon: Icon(Icons.note),
-                  label: Text('Notes'),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PomodoroPage()),
-                    );
-                  },
-                  icon: Icon(Icons.timer),
-                  label: Text('Pomodoro'),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TodoListPage()),
+                          );
+                        },
+                        icon: Icon(Icons.checklist),
+                        label: Text('To-Do List'),
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NotesPage()),
+                          );
+                        },
+                        icon: Icon(Icons.note),
+                        label: Text('Notes'),
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PomodoroPage()),
+                          );
+                        },
+                        icon: Icon(Icons.timer),
+                        label: Text('Pomodoro'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

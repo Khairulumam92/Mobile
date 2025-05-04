@@ -33,6 +33,32 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
+            SizedBox(height: 40),
+            ListTile(
+              title: Text('About Developer'),
+              subtitle: Text('Information about the developer of this app.'),
+              leading: Icon(Icons.person),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('About Developer'),
+                      content: Text(
+                          'This app was developed by khairul umam.\n\nContact us at: khairulumamku92@gmail.com'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),

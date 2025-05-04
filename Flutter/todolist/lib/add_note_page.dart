@@ -6,6 +6,7 @@ class AddNotePage extends StatelessWidget {
   final String? initialContent;
 
   AddNotePage({
+    super.key,
     required this.onNoteAdded,
     this.initialTitle,
     this.initialContent,
