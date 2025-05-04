@@ -1,6 +1,7 @@
-// Restored the PomodoroPage class to its original state
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:vibration/vibration.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 class PomodoroPage extends StatefulWidget {
   const PomodoroPage({super.key});
@@ -11,6 +12,7 @@ class PomodoroPage extends StatefulWidget {
 
 class _PomodoroPageState extends State<PomodoroPage> {
   int _pomodoroTime = 25 * 60; // 25 minutes in seconds
+  int _selectedPomodoroTime = 25 * 60; // Default selected duration
   bool _isPomodoroRunning = false;
   late Timer _timer;
 
@@ -25,15 +27,32 @@ class _PomodoroPageState extends State<PomodoroPage> {
       setState(() {
         if (_isPomodoroRunning && _pomodoroTime > 0) {
           _pomodoroTime--;
+        } else if (_isPomodoroRunning && _pomodoroTime == 0) {
+          _isPomodoroRunning = false;
+          _playAlarm();
         }
       });
     });
   }
 
+  void _playAlarm() {
+    FlutterRingtonePlayer.playNotification();
+    if (Vibration.hasVibrator() != null) {
+      Vibration.vibrate(duration: 1000);
+    }
+  }
+
   void _startPomodoro() {
     setState(() {
       _isPomodoroRunning = true;
-      _pomodoroTime = 25 * 60;
+      _pomodoroTime = _selectedPomodoroTime; // Use the selected duration
+    });
+  }
+
+  void _resetPomodoro() {
+    setState(() {
+      _pomodoroTime = _selectedPomodoroTime; // Reset to the selected duration
+      _isPomodoroRunning = false;
     });
   }
 
@@ -83,12 +102,7 @@ class _PomodoroPageState extends State<PomodoroPage> {
             ),
             SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _pomodoroTime = 25 * 60; // Reset to default 25 minutes
-                  _isPomodoroRunning = false;
-                });
-              },
+              onPressed: _resetPomodoro,
               icon: Icon(Icons.refresh),
               label: Text('Reset Pomodoro'),
             ),
@@ -104,10 +118,23 @@ class _PomodoroPageState extends State<PomodoroPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ListTile(
+                            title: Text('5 Menit'),
+                            onTap: () {
+                              setState(() {
+                                _selectedPomodoroTime =
+                                    5 * 60; // Update selected duration
+                                _pomodoroTime = _selectedPomodoroTime;
+                              });
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          ListTile(
                             title: Text('25 Menit'),
                             onTap: () {
                               setState(() {
-                                _pomodoroTime = 25 * 60;
+                                _selectedPomodoroTime =
+                                    25 * 60; // Update selected duration
+                                _pomodoroTime = _selectedPomodoroTime;
                               });
                               Navigator.of(context).pop();
                             },
@@ -116,7 +143,9 @@ class _PomodoroPageState extends State<PomodoroPage> {
                             title: Text('30 Menit'),
                             onTap: () {
                               setState(() {
-                                _pomodoroTime = 30 * 60;
+                                _selectedPomodoroTime =
+                                    30 * 60; // Update selected duration
+                                _pomodoroTime = _selectedPomodoroTime;
                               });
                               Navigator.of(context).pop();
                             },
@@ -125,9 +154,59 @@ class _PomodoroPageState extends State<PomodoroPage> {
                             title: Text('45 Menit'),
                             onTap: () {
                               setState(() {
-                                _pomodoroTime = 45 * 60;
+                                _selectedPomodoroTime =
+                                    45 * 60; // Update selected duration
+                                _pomodoroTime = _selectedPomodoroTime;
                               });
                               Navigator.of(context).pop();
+                            },
+                          ),
+                          ListTile(
+                            title: Text('Custom Durasi'),
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  TextEditingController
+                                      customDurationController =
+                                      TextEditingController();
+                                  return AlertDialog(
+                                    title: Text('Masukkan Durasi (menit)'),
+                                    content: TextField(
+                                      controller: customDurationController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: 'Contoh: 10',
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('Batal'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          final customMinutes = int.tryParse(
+                                              customDurationController.text);
+                                          if (customMinutes != null &&
+                                              customMinutes > 0) {
+                                            setState(() {
+                                              _selectedPomodoroTime =
+                                                  customMinutes * 60;
+                                              _pomodoroTime =
+                                                  _selectedPomodoroTime;
+                                            });
+                                          }
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('Simpan'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
                             },
                           ),
                         ],

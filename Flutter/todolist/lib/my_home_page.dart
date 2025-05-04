@@ -5,6 +5,63 @@ import 'notes_page.dart';
 import 'pomodoro_page.dart';
 import 'settings_page.dart';
 
+class NotesSearchDelegate extends SearchDelegate {
+  final List<Map<String, String>> notes;
+  final Function(String) onSearch;
+
+  NotesSearchDelegate({required this.notes, required this.onSearch});
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          onSearch(query);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final filteredNotes = notes
+        .where((note) =>
+            (note['title']?.toLowerCase().contains(query.toLowerCase()) ??
+                false) ||
+            (note['content']?.toLowerCase().contains(query.toLowerCase()) ??
+                false))
+        .toList();
+
+    return ListView.builder(
+      itemCount: filteredNotes.length,
+      itemBuilder: (context, index) {
+        final note = filteredNotes[index];
+        return ListTile(
+          title: Text(note['title'] ?? ''),
+          subtitle: Text(note['content'] ?? ''),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return buildResults(context);
+  }
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -15,6 +72,31 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String _searchQuery = '';
+
+  final List<Map<String, String>> notes = [
+    {'title': 'Note 1', 'content': 'Content of note 1'},
+    {'title': 'Note 2', 'content': 'Content of note 2'},
+    {'title': 'Note 3', 'content': 'Content of note 3'},
+  ];
+
+  List<Map<String, String>> get _filteredNotes {
+    if (_searchQuery.isEmpty) {
+      return notes;
+    }
+    return notes
+        .where((note) =>
+            (note['title']
+                    ?.toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ??
+                false) ||
+            (note['content']
+                    ?.toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ??
+                false))
+        .toList();
+  }
+
   String _getCurrentTime() {
     final now = DateTime.now();
     return DateFormat('HH:mm').format(now);
@@ -25,6 +107,24 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: NotesSearchDelegate(
+                  notes: notes,
+                  onSearch: (query) {
+                    setState(() {
+                      _searchQuery = query;
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -33,9 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
           Center(
             child: Column(
               children: [
-                Text('Jam Digital',
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 Text(_getCurrentTime(),
                     style:
                         TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),

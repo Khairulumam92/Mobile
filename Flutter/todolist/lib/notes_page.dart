@@ -13,6 +13,24 @@ class _NotesPageState extends State<NotesPage> {
   List<Map<String, String>> notes = [];
   TextEditingController titleController = TextEditingController();
   TextEditingController contentController = TextEditingController();
+  String _searchQuery = '';
+
+  List<Map<String, String>> get _filteredNotes {
+    if (_searchQuery.isEmpty) {
+      return notes;
+    }
+    return notes
+        .where((note) =>
+            (note['title']
+                    ?.toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ??
+                false) ||
+            (note['content']
+                    ?.toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ??
+                false))
+        .toList();
+  }
 
   @override
   void initState() {
@@ -95,6 +113,24 @@ class _NotesPageState extends State<NotesPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Notes'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: NotesSearchDelegate(
+                  notes: notes,
+                  onSearch: (query) {
+                    setState(() {
+                      _searchQuery = query;
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -117,17 +153,17 @@ class _NotesPageState extends State<NotesPage> {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: notes.length,
+                itemCount: _filteredNotes.length,
                 itemBuilder: (context, index) {
+                  final note = _filteredNotes[index];
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
-                      title: Text(notes[index]['title'] ?? 'Tanpa Judul'),
+                      title: Text(note['title'] ?? 'Tanpa Judul'),
                       subtitle: Text(
-                        notes[index]['content'] ?? '',
-                        maxLines: 5, // Display up to 5 lines of content
-                        overflow:
-                            TextOverflow.ellipsis, // Add ellipsis for overflow
+                        note['content'] ?? '',
+                        maxLines: null,
+                        overflow: TextOverflow.visible,
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -150,6 +186,85 @@ class _NotesPageState extends State<NotesPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class NotesSearchDelegate extends SearchDelegate {
+  final List<Map<String, String>> notes;
+  final Function(String) onSearch;
+
+  NotesSearchDelegate({required this.notes, required this.onSearch});
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          onSearch(query);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    onSearch(query);
+    final filteredNotes = notes
+        .where((note) =>
+            (note['title']?.toLowerCase().contains(query.toLowerCase()) ??
+                false) ||
+            (note['content']?.toLowerCase().contains(query.toLowerCase()) ??
+                false))
+        .toList();
+
+    return ListView.builder(
+      itemCount: filteredNotes.length,
+      itemBuilder: (context, index) {
+        final note = filteredNotes[index];
+        return ListTile(
+          title: Text(note['title'] ?? 'Tanpa Judul'),
+          subtitle: Text(note['content'] ?? ''),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final filteredNotes = notes
+        .where((note) =>
+            (note['title']?.toLowerCase().contains(query.toLowerCase()) ??
+                false) ||
+            (note['content']?.toLowerCase().contains(query.toLowerCase()) ??
+                false))
+        .toList();
+
+    return ListView.builder(
+      itemCount: filteredNotes.length,
+      itemBuilder: (context, index) {
+        final note = filteredNotes[index];
+        return ListTile(
+          title: Text(note['title'] ?? 'Tanpa Judul'),
+          subtitle: Text(note['content'] ?? ''),
+          onTap: () {
+            query = note['title'] ?? '';
+            showResults(context);
+          },
+        );
+      },
     );
   }
 }
