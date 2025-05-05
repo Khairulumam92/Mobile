@@ -232,8 +232,8 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
+            icon: Icon(Icons.checklist),
+            label: 'To-Do List',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
@@ -242,7 +242,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
         currentIndex: 0, // Set the current index dynamically if needed
         onTap: (index) {
-          if (index == 2) {
+          if (index == 0) {
+            // Navigate to Home
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TodoListPage()),
+            );
+          } else if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SettingsPage()),
